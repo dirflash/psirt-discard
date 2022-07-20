@@ -9,19 +9,30 @@ __license__ = "MIT License"
 import configparser
 import logging
 from datetime import datetime, timedelta
+import os
 import sys
 import requests
 import certifi
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 
-config = configparser.ConfigParser()
-config.read("config.ini")
-mongoaddr = config["MONGO"]["mongo_addr"]
-mongodb = config["MONGO"]["mongo_db"]
-mongouser = config["MONGO"]["user_name"]
-mongopw = config["MONGO"]["password"]
-webex_bearer = config["WEBEX"]["bearer"]
+
+KEY = "CI"
+if os.getenv(KEY):
+    mongoaddr = "cluster0.jzvod.mongodb.net"
+    mongodb = "PSIRT"
+    mongocollect = "discards"
+    mongouser = os.environ["mongouser"]
+    mongopw = os.environ["mongopw"]
+    webex_bearer = os.environ["webex_bearer"]
+else:
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    mongoaddr = config["MONGO"]["mongo_addr"]
+    mongodb = config["MONGO"]["mongo_db"]
+    mongouser = config["MONGO"]["user_name"]
+    mongopw = config["MONGO"]["password"]
+    webex_bearer = config["WEBEX"]["bearer"]
 
 MAX_MONGODB_DELAY = 500
 
