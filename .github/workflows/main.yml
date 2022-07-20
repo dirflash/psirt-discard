@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Run psirt-discard.py
+    name: Run discard.py
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     environment: discard
@@ -24,7 +24,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ hashFiles('psirt-discard.py') }}-${{ hashFiles('requirements.txt') }}
+          key: ${{ hashFiles('discard.py') }}-${{ hashFiles('requirements.txt') }}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -40,4 +40,4 @@ jobs:
           mongopw: ${{ secrets.MONGOPW }}
           webex_bearer: ${{ secrets.WEBEX_BEARER }}
         run: |
-          python psirt-discard.py
+          python discard.py
