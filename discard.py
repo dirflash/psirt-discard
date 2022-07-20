@@ -8,7 +8,7 @@ __license__ = "MIT License"
 
 import configparser
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 import sys
 import requests
@@ -92,7 +92,7 @@ def msg_stale(card, key):
         headers=wa_headers,
     )
     gm_sc = get_msg.status_code
-    print(f"Get Msg Status: {gm_sc}")
+    print(f"Does msg exist? {gm_sc}")
     update_msg_status = discards.update_one(
         {"_id": key}, {"$set": {"msg_status": gm_sc}}
     )
@@ -119,8 +119,12 @@ def del_aband(del_id, del_head, mon_id):
     dl_sc = del_msg.status_code
     print(f"Get Msg Status: {dl_sc}")
     if dl_sc == 204:
-        del_msg = discards.update_one(mon_id, {"$set": {"card_deleted": True}})
-        print(f"Card deleted count: {del_msg.deleted_count}")
+        mod_msg = discards.update_one(mon_id, {"$set": {"card_deleted": True}})
+        print(f"Card deleted count: {mod_msg.modified_count}")
+    if dl_sc == 404:
+        print("Abandoned card previously deleted")
+        mod_msg = discards.update_one(mon_id, {"$set": {"card_deleted": True}})
+        print(f"Card deleted count: {mod_msg.modified_count}")
 
 
 num_records = discards.count_documents({"_id": {"$exists": True}})
@@ -170,7 +174,7 @@ for idx, val in enumerate(stale_msgs):
         delete_msg = discards.delete_one(record_id)
         print(f"Deleted count: {delete_msg.deleted_count}")
 
-msg_offset = datetime.now() - timedelta(minutes=10)
+msg_offset = datetime.now(timezone.utc) - timedelta(minutes=10)
 abandoned_msg = discards.find({"msg_status": {"$exists": True}})
 
 for ind, item in enumerate(abandoned_msg):
@@ -179,9 +183,9 @@ for ind, item in enumerate(abandoned_msg):
     abandoned_msgs.append(ID)
     m_status = item["msg_status"]
     if m_status == 200:
-        m_time = item["card_created"]
+        m_time = (item["card_created"]).replace(tzinfo=timezone.utc)
         m_id = item["card_id"]
-        print(m_time)
-        if msg_offset > m_time:
-            print("Abandoned card")
-            del_aband(m_id, wa_headers, item_id)
+        if "card_deleted" not in item:
+            if msg_offset > m_time:
+                print("Abandoned card")
+                del_aband(m_id, wa_headers, item_id)
