@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""This script is...."""
+"""This script cleans up abandoned adaptive cards messages sent by the PSQRT bot in the Webex app. An abandoned card is one that has not been submitted in the last 10-minutes."""
 
 __author__ = "Aaron Davis"
 __version__ = "0.1.5"
@@ -8,12 +8,8 @@ __license__ = "MIT License"
 
 import configparser
 import logging
-from datetime import datetime, date, timedelta, timezone
-import os
-from socket import MsgFlag
+from datetime import datetime, timedelta
 import sys
-import json
-from time import time
 import requests
 import certifi
 from pymongo import MongoClient
